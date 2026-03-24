@@ -9,7 +9,7 @@ import (
 	"github.com/green-api/maxbot-api-client-go/pkg/api"
 	"github.com/green-api/maxbot-api-client-go/pkg/client"
 	"github.com/green-api/maxbot-api-client-go/pkg/models"
-	c "github.com/green-api/maxbot-chatbot-go/pkg/ctx"
+	n "github.com/green-api/maxbot-chatbot-go/pkg/notification"
 	"github.com/green-api/maxbot-chatbot-go/pkg/router"
 	"github.com/green-api/maxbot-chatbot-go/pkg/state"
 )
@@ -65,7 +65,7 @@ func (b *Bot) StartPolling(ctx context.Context) {
 }
 
 func (b *Bot) processUpdate(ctx context.Context, update models.Update) {
-	notif := &c.Notification{
+	notif := &n.Notification{
 		Ctx:          ctx,
 		Update:       &update,
 		BotAPI:       b.API,
