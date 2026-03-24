@@ -18,8 +18,8 @@ import (
 
 func main() {
 	cfg := client.Config{
-		BaseURL: "https://platform-api.max.ru/", /* Base url for MAX API requests */
-		Token:   "",                             /* Max bot token */
+		BaseURL: "", /* Base url for MAX API requests */
+		Token:   "", /* Max bot token */
 
 		GlobalRPS: 25, /* Exceeding the limit will lead to account ban */
 		Timeout:   35 * time.Second,
