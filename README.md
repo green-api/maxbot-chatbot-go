@@ -163,17 +163,17 @@ func (s RegistrationScene) Start(n *n.Notification) {
 	text, _ := n.Text()
 	
 	if text == "/start" {
-		n.Reply("Let's register! What is your login?")
+		n.Reply("Let's register! What is your **login**?", m.Markdown)
 		return 
 	}
 	
 	if len(text) >= 4 {
 		n.StateManager.UpdateStateData(n.StateId, map[string]any{"login": text})
 		
-		n.Reply(fmt.Sprintf("Login %s accepted. Now enter your password:", text))
+		n.Reply(fmt.Sprintf("Login %s accepted. Now enter your **password**:", text), m.Markdown)
 		n.ActivateNextScene(PasswordScene{})
 	} else {
-		n.Reply("Login must be at least 4 characters long.")
+		n.Reply("Login must be** at least 4 characters long.**", m.Markdown)
 	}
 }
 
@@ -185,7 +185,7 @@ func (s PasswordScene) Start(n *n.Notification) {
 	stateData := n.StateManager.GetStateData(n.StateId)
 	login := stateData["login"].(string)
 
-	n.Reply(fmt.Sprintf("Success! Profile created.\nLogin: %s\nPass: %s", login, password))
+	n.Reply(fmt.Sprintf("**Success**! Profile created.\nLogin: %s\nPass: %s", login, password), m.Markdown)
 
 	n.ActivateNextScene(RegistrationScene{})
 }
@@ -197,13 +197,11 @@ The `Notification` wrapper provides convenient methods to reply with text and at
 
 ```go
 myBot.Router.Command("/photo", func(n *n.Notification) {
-    attachment := models.Attachment{
-        Type: "image",
-        Payload: models.AttachmentPayload{
-            Url: "https://example.com/image.png",
-        },
-    }
-    n.ReplyWithMedia("Check out this image!", attachment)
+    n.ReplyWithMedia(
+		"Check out this image!", 
+		m.Markdown, 
+		"https://example.com/image.png"
+	)
 })
 ```
 
@@ -231,7 +229,7 @@ func main() {
 		if err != nil {
 			return
 		}
-		n.Reply("Echo: " + text)
+		n.Reply(("Echo: " + text), m.Markdown)
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())

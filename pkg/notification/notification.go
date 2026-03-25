@@ -56,6 +56,16 @@ func (n *Notification) Text() (string, error) {
 	return "", fmt.Errorf("text is not applicable for type: %s", n.Type())
 }
 
+func (n *Notification) SenderName() (string, error) {
+	switch n.Type() {
+	case models.TypeMessageCreated, models.TypeMessageEdited:
+		return n.Update.Message.Sender.FirstName, nil
+	case models.TypeMessageCallback:
+		return n.Update.Callback.User.FirstName, nil
+	}
+	return "", fmt.Errorf("sender ID not found for type: %s", n.Type())
+}
+
 func (n *Notification) SenderID() (int64, error) {
 	switch n.Type() {
 	case models.TypeMessageCreated, models.TypeMessageEdited:
@@ -88,18 +98,23 @@ func (n *Notification) applyRouting(chatID *int64, userID *int64) {
 	}
 }
 
-func (n *Notification) Reply(text string) error {
+func (n *Notification) Reply(text string, format models.Format) error {
 	return n.send(models.SendMessageReq{
 		Text:   text,
+		Format: format,
 		Notify: true,
-	}, "text")
+	}, "Text")
 }
 
-func (n *Notification) ReplyWithMedia(text string, fileSource string) error {
+func (n *Notification) ReplyWithMedia(text string, format models.Format, fileSource string, keyboard [][]models.KeyboardButton) error {
 	req := models.SendFileReq{
 		Text:       text,
+		Format:     format,
 		FileSource: fileSource,
 		Notify:     true,
+	}
+	if len(keyboard) > 0 {
+		req.Attachments = []models.Attachment{models.AttachKeyboard(keyboard)}
 	}
 	n.applyRouting(&req.ChatID, &req.UserID)
 
@@ -116,29 +131,30 @@ func (n *Notification) ReplyWithContact(name, phone string, contactID *int64) er
 	return n.send(models.SendMessageReq{
 		Attachments: []models.Attachment{models.AttachContact(name, phone, contactID)},
 		Notify:      true,
-	}, "contact")
+	}, "Contact")
 }
 
 func (n *Notification) ReplyWithLocation(lat, lon float64) error {
 	return n.send(models.SendMessageReq{
 		Attachments: []models.Attachment{models.AttachLocation(lat, lon)},
 		Notify:      true,
-	}, "location")
+	}, "Location")
 }
 
-func (n *Notification) ReplyWithKeyboard(text string, buttons []models.KeyboardButton) error {
+func (n *Notification) ReplyWithKeyboard(text string, format models.Format, buttons [][]models.KeyboardButton) error {
 	return n.send(models.SendMessageReq{
 		Text:        text,
+		Format:      format,
 		Attachments: []models.Attachment{models.AttachKeyboard(buttons)},
 		Notify:      true,
-	}, "keyboard")
+	}, "Keyboard")
 }
 
 func (n *Notification) ReplyWithSticker(url, code string) error {
 	return n.send(models.SendMessageReq{
 		Attachments: []models.Attachment{models.AttachSticker(url, code)},
 		Notify:      true,
-	}, "sticker")
+	}, "Sticker")
 }
 
 func (n *Notification) ReplyWithShare(text, url, title, desc string) error {
@@ -146,7 +162,7 @@ func (n *Notification) ReplyWithShare(text, url, title, desc string) error {
 		Text:        text,
 		Attachments: []models.Attachment{models.AttachShare(url, title, desc)},
 		Notify:      true,
-	}, "share")
+	}, "Share")
 }
 
 func (n *Notification) AnswerCallback(text string) error {
@@ -154,12 +170,16 @@ func (n *Notification) AnswerCallback(text string) error {
 		return errors.New("cannot answer callback: update is not a callback")
 	}
 
-	_, err := n.BotAPI.Messages.AnswerCallback(n.Ctx, models.AnswerCallbackReq{
-		CallbackID: n.Update.Callback.CallbackID,
-		Message: &models.NewMessageBody{
-			Text: text,
-		},
-	})
+	req := models.AnswerCallbackReq{
+		CallbackID:   n.Update.Callback.CallbackID,
+		Notification: text,
+	}
+
+	if text == "" {
+		req.Notification = " "
+	}
+
+	_, err := n.BotAPI.Messages.AnswerCallback(n.Ctx, req)
 
 	if err != nil {
 		log.Error().Msgf("AnswerCallback error: %v", err)
@@ -173,7 +193,7 @@ func (n *Notification) ReplyWithAttachments(text string, format models.Format, a
 		Format:      format,
 		Attachments: attachments,
 		Notify:      true,
-	}, "attachments")
+	}, "Attachments")
 }
 
 func (n *Notification) ActivateNextScene(scene state.Scene) {

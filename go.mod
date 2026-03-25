@@ -3,7 +3,7 @@ module github.com/green-api/maxbot-chatbot-go
 go 1.25.0
 
 require (
-	github.com/green-api/maxbot-api-client-go v1.1.0
+	github.com/green-api/maxbot-api-client-go v1.0.0
 	github.com/rs/zerolog v1.34.0
 )
 

@@ -107,12 +107,12 @@ func main() {
 	myBot.Router.Register(models.TypeMessageCreated, func(n *n.Notification) {
 		text, err := n.Text()
 		if err == nil && text == "ping" {
-			n.Reply("pong")
+			n.Reply("pong", m.Format(""))
 		}
 	})
 
 	myBot.Router.Callback("accept_rules_payload", func(n *n.Notification) {
-		n.Reply("Thank you for accepting the rules!")
+		n.Reply("*Thank you for accepting the rules!*", m.Markdown)
 	})
 
 	myBot.StartPolling(context.Background())
@@ -164,17 +164,17 @@ func (s RegistrationScene) Start(n *n.Notification) {
 	text, _ := n.Text()
 	
 	if text == "/start" {
-		n.Reply("Let's register! What is your login?")
+		n.Reply("Let's register! What is your *login*?", m.Markdown)
 		return 
 	}
 	
 	if len(text) >= 4 {
 		n.StateManager.UpdateStateData(n.StateId, map[string]any{"login": text})
 		
-		n.Reply(fmt.Sprintf("Login %s accepted. Now enter your password:", text))
+		n.Reply(fmt.Sprintf("**Login** `%s` accepted. Now enter your **password**:", text), m.Markdown)
 		n.ActivateNextScene(PasswordScene{})
 	} else {
-		n.Reply("Login must be at least 4 characters long.")
+		n.Reply("Login must be **at least 4 characters long**.", m.Markdown)
 	}
 }
 
@@ -186,7 +186,7 @@ func (s PasswordScene) Start(n *n.Notification) {
 	stateData := n.StateManager.GetStateData(n.StateId)
 	login := stateData["login"].(string)
 
-	n.Reply(fmt.Sprintf("Success! Profile created.\nLogin: %s\nPass: %s", login, password))
+	n.Reply(fmt.Sprintf("Success! Profile created.\nLogin: `%s`\nPass: `%s`", login, password), m.Markdown)
 
 	n.ActivateNextScene(RegistrationScene{})
 }
@@ -198,13 +198,11 @@ func (s PasswordScene) Start(n *n.Notification) {
 
 ```go
 myBot.Router.Command("/photo", func(n *n.Notification) {
-    attachment := models.Attachment{
-        Type: "image",
-        Payload: models.AttachmentPayload{
-            Url: "https://example.com/image.png",
-        },
-    }
-    n.ReplyWithMedia("Check out this image!", attachment)
+    n.ReplyWithMedia(
+		"Check out this image!", 
+		m.Markdown, 
+		"https://example.com/image.png"
+	)
 })
 ```
 
@@ -232,7 +230,7 @@ func main() {
 		if err != nil {
 			return
 		}
-		n.Reply("Echo: " + text)
+		n.Reply("Echo: " + text, "")
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/green-api/maxbot-api-client-go/pkg/client"
-	"github.com/green-api/maxbot-api-client-go/pkg/models"
+	m "github.com/green-api/maxbot-api-client-go/pkg/models"
 	"github.com/green-api/maxbot-chatbot-go/pkg/bot"
 	n "github.com/green-api/maxbot-chatbot-go/pkg/notification"
 	"github.com/green-api/maxbot-chatbot-go/pkg/state"
@@ -32,12 +32,12 @@ func main() {
 
 	b.StateManager = state.NewMapStateManager(map[string]any{})
 
-	b.Router.Register(models.TypeMessageCreated, func(n *n.Notification) {
+	b.Router.Register(m.TypeMessageCreated, func(n *n.Notification) {
 		text, err := n.Text()
 		if err != nil {
 			return
 		}
-		n.Reply("Echo: " + text)
+		n.Reply("**Echo:** "+text, m.Markdown)
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
