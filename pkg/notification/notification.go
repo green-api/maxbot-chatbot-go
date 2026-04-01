@@ -101,12 +101,6 @@ func (n *Notification) SenderID() (int64, error) {
 	case models.TypeMessageCreated, models.TypeMessageEdited:
 		return n.Update.Message.Sender.UserID, nil
 	case models.TypeMessageCallback:
-		if n.Update.ChatID != 0 {
-			return int64(n.Update.ChatID), nil
-		}
-		if n.Update.Message.Recipient.ChatID != 0 {
-			return n.Update.Message.Recipient.ChatID, nil
-		}
 		return n.Update.Callback.User.UserID, nil
 	}
 	return 0, fmt.Errorf("sender ID not found for type: %s", n.Type())
@@ -127,7 +121,13 @@ func (n *Notification) ChatID() (int64, error) {
 		}
 		return n.Update.Message.Sender.UserID, nil
 	case models.TypeMessageCallback:
-		return n.Update.Callback.User.UserID, nil
+		if n.Update.ChatID != 0 {
+			return int64(n.Update.ChatID), nil
+		}
+		if n.Update.Message.Recipient.ChatID != 0 {
+			return n.Update.Message.Recipient.ChatID, nil
+		}
+		return 0, fmt.Errorf("chat ID not found for callback")
 	}
 	return 0, fmt.Errorf("chat ID not found for type: %s", n.Type())
 }
