@@ -46,6 +46,14 @@ go get github.com/green-api/maxbot-chatbot-library
 
 ## Использование и примеры
 
+**Параметры конфигурации:** 
+
+- `BaseURL` - Базовый URL-адрес серверов платформы MaxBot. Все методы API будут маршрутизироваться по этому корневому адресу. Актуальный адрес указан в [официальной документации](https://dev.max.ru/docs-api).
+- `Token` - Уникальный секретный ключ авторизации (API-ключ) вашего бота. Получить его можно в личном кабинете после [регистрации или создании бота](https://green-api.com/max-bot-api/docs/before-start/) на платформе [business.max.ru](https://business.max.ru/).
+- `RateLimiter` - Встроенный ограничитель частоты запросов. Он контролирует количество исходящих запросов в секунду (RPS), защищая бота от блокировки со стороны сервера за превышение лимитов. Рекомендуемое значение — не менее 25.
+- `Timeout` - Максимальное время ожидания ответа от сервера (в секундах). Если сервер не ответит в течение этого времени, запрос будет завершен с ошибкой. Оптимальное значение — 30 секунд.
+
+  
 ### 1. Инициализация бота
 
 Чтобы начать получать и отвечать на сообщения, настройте бота, используя ваш `BaseURL` и `Token`, затем запустите механизм опроса.
@@ -63,8 +71,10 @@ import (
 
 func main() {
 	myBot, err := bot.NewBot(client.Config{
-		BaseURL: "https://platform-api.max.ru", /* Base url for MAX API requests */
-		Token:   "YOUR_BOT_TOKEN",              /* Max bot token */
+		BaseURL: "https://platform-api.max.ru",
+		Token:   "YOUR_BOT_TOKEN",              // Замените на ваш токен
+		RateLimiter: 25,
+    	Timeout: 30 * time.Second,
 	})
 
 	if err != nil {
@@ -93,10 +103,12 @@ import (
 )
 
 func main() {
-	myBot, _ := bot.NewBot(client.Config{
-        BaseURL: "https://platform-api.max.ru", /* Base url for MAX API requests */
-		Token:   "YOUR_BOT_TOKEN",              /* Max bot token */
-    })
+	myBot, err := bot.NewBot(client.Config{
+		BaseURL: "https://platform-api.max.ru",
+		Token:   "YOUR_BOT_TOKEN",              // Замените на ваш токен
+		RateLimiter: 25,
+    	Timeout: 30 * time.Second,
+	})
 
 	myBot.Router.Command("/start", func(n *n.Notification) {
 		n.Reply("Hello! Welcome to the MAX Bot.")
@@ -135,10 +147,12 @@ import (
 )
 
 func main() {
-	myBot, _ := bot.NewBot(client.Config{
-        BaseURL: "https://platform-api.max.ru", /* Base url for MAX API requests */
-		Token:   "YOUR_BOT_TOKEN",              /* Max bot token */
-    })
+	myBot, err := bot.NewBot(client.Config{
+		BaseURL: "https://platform-api.max.ru",
+		Token:   "YOUR_BOT_TOKEN",              // Замените на ваш токен
+		RateLimiter: 25,
+    	Timeout: 30 * time.Second,
+	})
 
 	myBot.StateManager = state.NewMapStateManager(map[string]any{
 		"step": "start",
@@ -209,11 +223,10 @@ myBot.Router.Command("/photo", func(n *n.Notification) {
 ```go
 func main() {
 	myBot, err := bot.NewBot(client.Config{
-		BaseURL: "https://platform-api.max.ru", /* Base url for MAX API requests */
-		Token:   "YOUR_BOT_TOKEN",              /* Max bot token */
-		
-		GlobalRPS: 25, /* Exceeding the limit will lead to account ban */
-		Timeout:   35 * time.Second,
+		BaseURL: "https://platform-api.max.ru",
+		Token:   "YOUR_BOT_TOKEN",              // Замените на ваш токен
+		RateLimiter: 25,
+    	Timeout: 30 * time.Second,
 	})
 	if err != nil {
 		log.Error().Msgf("Bot initialization error: %v", err)
